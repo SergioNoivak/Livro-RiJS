@@ -132,7 +132,7 @@ let remover_stoppwords = (tokens)=>{
 
 
 
-Esse código acima apesar de verificar quais palavras são relevantes, ele apresenta dois erros, que são 
+Esse código acima apesar de verificar quais palavras são relevantes, ele apresenta dois erros, que são: 
 
 <ol><li>O código não trata símbolos especiais como $#%&*()@! por exemplo</li>
     <li>O código não remove pontuações
@@ -191,4 +191,255 @@ Podemos refinar um pouco o código adicionando esses tratamentos, dessa forma:
 ``````
 
 A variável ``format`` irá conter uma expressão regular que contém apenas símbolos especiais e a avaliação ``!format.test(element)`` irá adicionar a lista de índices apenas o token que não tiver caracteres especiais, já ``element.replace(',;.','')`` vai remover dos tokens as pontuações que são inúteis.
+
+Esse tratamento nos tokens irá retornar um vetor de indices:
+
+``````javascript
+[
+  'JavaScript',      'linguagem',        'programação',    
+  'permite',         'implementar',      'funcionalidades',
+  'complexas',       'páginas',          'momento',        
+  'página',          'web',              'apenas',
+  'mostrar',         'informações',      'estáticas',      
+  'elas',            'mostram',          'real',
+  'conteúdos',       'mapas',            'animações',      
+  'gráficas',        'apostar',          'Javascript',     
+  'provavelmente',   'aprendizadoSeção', 'Javascript',     
+  'tão',             'fácil',            'aprender',       
+  'HTML',            'outros',           'pilares',        
+  'desenvolvimento', 'Antes',            'aprender',       
+  'altamente',       'recomendável',     'aprenda',        
+  'menos',           'estas',            'duas',
+  'Você',            'começar',          'Começando',      
+  'Web',             'Introdução',       'HTML',
+  'Introdução',      'CSS',              'Possuir',        
+  'experiência',     'outras',           'linguagens',     
+  'programação',     'serão',            'Depois',
+  'aprender',        'básico',           'apto',
+  'estudar',         'tópicos',          'JavaScript',     
+  'ensinado',        'Guia',             'JavaScript',     
+  'Referências',     'API',              'Web'
+]
+``````
+
+### A query de busca
+
+O modelo booleano através de operações lógicas consegue retornar documentos, as querys são frases que contém palavras chaves e operadores, exemplo:
+
+``````
+query = abacaxi AND banana OR( tomate AND cereja)
+``````
+
+Os operadores lógicos realizam buscas nos índices de cada documento, os operadores lógicos comuns em um modelo booleano são:
+
+<ul><br><li><b>AND</b></li><br><li><b>OR</b></li><br><li><b>NOT</b></li><br></ul>
+
+
+
+Esses operadores podem ser combinados para selecionar documentos.
+
+### Codificando query de busca
+
+A fim de se codificar a query de busca é necessário incluir um avaliador de expressão lógica. Para tanto será usado um avaliador de expressão lógica, [boolean-expression](https://github.com/bloomtime/boolean-expression-js), que funciona da seguinte forma:
+
+``````javascript
+let expression =  require('./expression')
+
+var parsed = new Expression("John AND Paul AND Ringo AND George");
+assert.equal(parsed.test("John"), false);
+assert.equal(parsed.test("Paul"), false);
+assert.equal(parsed.test("Ringo"), false);
+assert.equal(parsed.test("George"), false);
+assert.equal(parsed.test("John Paul George Ringo"), true);
+assert.equal(parsed.test("Ringo George Paul John"), true);
+``````
+
+O avaliador irá testar se as palavras contém a query.
+
+Para o código acima funcionar é necessário instalar a dependência ``reparse`` do avaliador:
+
+``````bash
+ npm i reparse --save   
+``````
+
+Sem essa dependência não é possível usar ``expression``. Feito isso podemos fazer a query de busca:
+
+``````javascript
+ fs.readFile(filePath, {encoding: 'utf-8'}, function(err,data){
+    if (!err) {
+
+        let tokens = data.match(/\S+/g)
+        remover_stoppwords(tokens);
+        let string_de_indices = "";
+        tokens.forEach((el)=>{
+            string_de_indices+=""+el+" "
+        })
+        console.log(string_de_indices)
+        var parsed = new expression("(Javascript AND pilares) OR três");
+        console.log(parsed.test(string_de_indices));
+     
+     } else {
+        console.log(err);
+    }
+});
+``````
+
+Esse código acima irá retornar ``true`` ou ``false`` se o documento satisfaz ou não a query desejada, no exemplo da query ``(Javascript AND pilares) OR três`` o resultado será ``true``. Com isso é possível fazer muitas query complexas nos nossos documentos.
+
+### Entrada de dados pelo usuário
+
+Para fins de teste é interessante preencher os dados pelo terminal, uma função interessante para fazer isso é a função ``scanf`` da dependência  [scanf](https://www.npmjs.com/package/scanf) que facilita a entrada de dados pelo terminal.
+
+Para instalar basta entrar com o comando:
+
+````bash
+npm i scanf --save
+````
+
+​	E utiliza-la da seguinte forma:
+
+````javascript
+
+ fs.readFile(filePath, {encoding: 'utf-8'},  function(err,data){
+    if (!err) {
+		console.log("Digite a query de busca")
+        let query =scanf("%S");
+        let tokens = data.match(/\S+/g)
+        remover_stoppwords(tokens);
+
+        let string_de_indices = "";
+        tokens.forEach((el)=>{
+            string_de_indices+=""+el+" "
+        })
+
+        var parsed = new expression(query);
+        console.log(parsed.test(string_de_indices))
+        
+    
+     } else {
+        console.log(err);
+    }
+});
+````
+
+Agora quando executar pelo node o programa ficará aguardando a entrada da ``query``:
+
+Uma possível query para a busca é  a query ``Javascript AND jquery``, que deve retornar ``false`` pois a palavra chave ``jquery`` não está presente no nosso documento.
+
+````javascript
+Javascript AND jquery
+[
+  'JavaScript',      'linguagem',        'programação',
+  'permite',         'implementar',      'funcionalidades',
+  'complexas',       'páginas',          'momento',
+  'página',          'web',              'apenas',
+  'mostrar',         'informações',      'estáticas',
+  'elas',            'mostram',          'real',
+  'conteúdos',       'mapas',            'animações',
+  'gráficas',        'apostar',          'Javascript',
+  'provavelmente',   'aprendizadoSeção', 'Javascript',
+  'tão',             'fácil',            'aprender',
+  'HTML',            'outros',           'pilares',
+  'desenvolvimento', 'Antes',            'aprender',
+  'altamente',       'recomendável',     'aprenda',
+  'menos',           'estas',            'duas',
+  'Você',            'começar',          'Começando',
+  'Web',             'Introdução',       'HTML',
+  'Introdução',      'CSS',              'Possuir',
+  'experiência',     'outras',           'linguagens',
+  'programação',     'serão',            'Depois',
+  'aprender',        'básico',           'apto',
+  'estudar',         'tópicos',          'JavaScript',
+  'ensinado',        'Guia',             'JavaScript',
+  'Referências',     'API',              'Web'
+]
+false
+````
+
+Com isso conseguimos classificar um documento como relevante ou não, no modelo booleano
+
+### Construção do modelo booleano
+
+Agora por fim basta fazer isso para todo o <b>locus de documento</b> a fim de obter os documentos relevantes.
+
+Para se ter o nome de todos os arquivos de um diretório basta fazer:
+
+``````javascript
+const testFolder = './documentos/';
+
+fs.readdir(testFolder, (err, files) => {
+  files.forEach(file => {
+    console.log(file);
+  });
+});
+``````
+
+Perceba que ``file`` é o nome do arquivo na pasta.
+
+Antes de prosseguir com isso, é necessária uma refatoração, por isso vamos criar uma função que irá decidir se um arquivo é ou não relevante para o modelo:
+
+````javascript
+
+async function decidirArquivo(file){
+    return new Promise(function (resolveArquivo, rejectArquivo) {
+        fs.readFile(filePath + file, {
+            encoding: 'utf-8'
+        }, function (err, data) {
+            if (!err) {
+
+                let tokens = data.match(/\S+/g)
+                let indices = remover_stoppwords(tokens);
+
+                let string_de_indices = "";
+                indices.forEach((el) => {
+                    string_de_indices += "" + el + " "
+                })
+                var parsed = new expression(query);
+                let relevante = parsed.test(string_de_indices);
+
+                resolveArquivo(relevante ? file : null)
+            } else {
+                console.log(err);
+            }
+        });
+    })
+}
+````
+
+Observa-se que é necessário a criação de uma ``Promise`` pois a leitura é assíncrona. 
+
+Depois é necessário que decidir todo o lócus de documentos, para identificar quais são os documentos relevantes, para tanto é necessário ler de um diretório, logo podemos codificar da seguinte forma:
+
+``````javascript
+async function lerDiretorio(){
+
+    return new Promise(function (resolveDiretorio, rejectDiretorio) {
+        let arquivosRelevantes = []
+        fs.readdir(testFolder,async (err, files) => {
+        
+            for(let i = 0 ;i<files.length;i++){
+                let leitura = await decidirArquivo(files[i])
+                if(leitura!=null)
+                    arquivosRelevantes.push(leitura)
+            }
+            resolveDiretorio(arquivosRelevantes)
+
+        })
+    })
+}
+``````
+
+
+
+Esse código apresenta a função de leitura de diretório, todos os arquivos que se deseja analisar devem ser colocados nesse diretório. Observe que foi utilizado um loop de ``for`` e não um loop de ``forEach`` pois o loop de ``for`` funciona muito bem com promisses, você pode ler mais a respeito acessando [esse link](https://medium.com/@oieduardorabelo/javascript-armadilhas-do-asyn-await-em-loops-1cdad44db7f0).
+
+Depois deve-se integrar ambas as funções fazendo:
+
+````javascript
+lerDiretorio().then(arquivosRelevantes=>{
+
+    console.log('arquivosRelevantes: ',arquivosRelevantes)
+})
+
+````
 
