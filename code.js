@@ -23,6 +23,7 @@ let remover_stoppwords = (tokens) => {
 
 
 const testFolder = './documentos/';
+console.log("Digite a query de busca: exemplo:     Javascript AND bananas AND(tomates AND morangos)")
 let query = scanf("%S");
 
 
