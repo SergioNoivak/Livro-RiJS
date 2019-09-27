@@ -1,0 +1,10 @@
+JavaScript é uma linguagem de programação que permite implementar funcionalidades mais complexas em páginas web. A cada momento uma página web faz mais do que apenas mostrar informações estáticas para você - elas mostram em tempo real conteúdos atualizados, ou mapas interativos, animações gráficas em 2D/3D, vídeos, etc.,  você pode apostar que o Javascript provavelmente está envolvido.
+O caminho para o aprendizadoSeção
+O Javascript não é tão fácil de aprender como HTML e CSS, os outros dois pilares do desenvolvimento front-end. Antes de tentar aprender JavaScript, é altamente recomendável que você aprenda pelo menos estas duas tecnologias. Você pode começar por estes módulos:
+Começando na Web
+Introdução ao HTML
+Introdução ao CSS
+Possuir experiência em outras linguagens de programação serão úteis.
+Depois de aprender o básico de JavaScript, você estará apto a estudar tópicos mais avançados, como:
+ JavaScript aprofundado, como ensinado em Guia JavaScript
+Referências API Web
